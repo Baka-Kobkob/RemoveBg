@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <title>V-Real AI | Smart Remover</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #0062ff; --bg: #f8fafc; --white: #ffffff; }
+        body { background: var(--bg); font-family: 'Kantumruy Pro', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #1e293b; }
+        .container { background: var(--white); padding: 40px; border-radius: 30px; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        h1 { color: var(--primary); margin: 0 0 10px; }
+        .upload-card { border: 2px dashed #cbd5e1; padding: 40px 20px; border-radius: 20px; cursor: pointer; transition: 0.3s; background: #fdfdfd; margin: 20px 0; }
+        .upload-card:hover { border-color: var(--primary); background: #f0f7ff; }
+        #preview-img, #result-img { width: 100%; border-radius: 12px; margin-top: 15px; display: none; border: 1px solid #e2e8f0; }
+        .btn { background: var(--primary); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.3s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 98, 255, 0.3); }
+        .btn:disabled { background: #cbd5e1; }
+        #downloadBtn { display: none; margin-top: 15px; color: var(--primary); font-weight: bold; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>V-Real AI</h1>
+        <p style="color: #64748b;">លុបផ្ទៃខាងក្រោយរូបភាពដោយ AI</p>
+
+        <div class="upload-card" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" hidden accept="image/*" onchange="previewFile(this)">
+            <div id="drop-text">📁 ចុចដើម្បីបញ្ចូលរូបភាព</div>
+            <img id="preview-img">
+        </div>
+
+        <button id="processBtn" class="btn" onclick="processImage()">ចាប់ផ្តើមលុបផ្ទៃខាងក្រោយ</button>
+        <p id="loader" style="display:none; color: var(--primary);">កំពុងដំណើរការ...</p>
+
+        <img id="result-img">
+        <a id="downloadBtn" download="vreal_no_bg.png">⬇ ទាញយករូបភាព (PNG)</a>
+    </div>
+
+    <script>
+        function previewFile(input) {
+            if (input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = document.getElementById('preview-img');
+                    img.src = e.target.result;
+                    img.style.display = "block";
+                    document.getElementById('drop-text').style.display = "none";
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function processImage() {
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files[0]) return alert("សូមរើសរូបភាព!");
+
+            document.getElementById('loader').style.display = "block";
+            document.getElementById('processBtn').disabled = true;
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/api/remove-bg', { method: 'POST', body: formData });
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+
+                const resImg = document.getElementById('result-img');
+                resImg.src = url;
+                resImg.style.display = "block";
+                
+                const dlBtn = document.getElementById('downloadBtn');
+                dlBtn.href = url;
+                dlBtn.style.display = "inline-block";
+            } catch (e) {
+                alert("ការលុបមិនជោគជ័យ!");
+            } finally {
+                document.getElementById('loader').style.display = "none";
+                document.getElementById('processBtn').disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
